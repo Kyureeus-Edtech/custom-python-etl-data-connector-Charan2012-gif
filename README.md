@@ -1,45 +1,144 @@
-# Shodan API Host Information Script
+# Custom Python ETL Data Connector
 
-This script uses the Shodan API to retrieve information about a specific IP address.
+## Project Overview
 
-## Requirements
+This repository contains a comprehensive ETL (Extract, Transform, Load) data pipeline solution that integrates multiple cybersecurity data sources into MongoDB databases. The project is organized into two main categories, each focusing on different types of security intelligence data collection and storage.
 
-You will need:
-- Python 3.x installed
-- A Shodan API key (sign up at https://account.shodan.io/register if you don't have one)
+## Repository Structure
 
-## Installation
+```
+custom-python-etl-data-connector/
+├── Cat1_All_Endpoints/          # Shodan API Integration
+│   ├── shodan_connector.py      # Main Shodan ETL connector
+│   ├── shodan_README.md         # Shodan-specific documentation
+│   └── shodan_requirements.txt  # Shodan dependencies
+├── Cat2_All_Endpoints/          # MITRE ATT&CK TAXII Integration
+│   ├── MittreTaxiAPI_connector.py  # MITRE TAXII ETL connector
+│   ├── MittreTaxi_README.md        # MITRE TAXII documentation
+│   └── requirements.txt            # MITRE TAXII dependencies
+├── ENV_TEMPLATE                 # Environment variables template
+└── README.md                   # This file
+```
 
-1. Clone or download this repository to your local machine.
+## Categories Overview
 
-2. Install required dependencies by running:
+### Cat1_All_Endpoints: Shodan Security Intelligence
 
-3. pip install -r requirements.txt
+Purpose: Collects network security intelligence data from Shodan, the world's first search engine for Internet-connected devices.
 
+Key Features:
+- Device Discovery: Searches for IoT devices, servers, and network infrastructure
+- Vulnerability Scanning: Identifies exposed services and potential security risks
+- Geolocation Data: Maps device locations and network topology
+- Service Fingerprinting: Identifies running services, software versions, and configurations
+- Rate Limiting: Implements proper API rate limiting to respect Shodan's usage policies
+
+Data Sources:
+- Shodan REST API endpoints
+- Real-time device scanning results
+- Historical vulnerability data
+- Network service information
+
+MongoDB Storage: Stores results in configurable databases with timestamped entries for tracking device exposure over time.
+
+### Cat2_All_Endpoints: MITRE ATT&CK Threat Intelligence
+
+Purpose: Extracts structured threat intelligence from the MITRE ATT&CK framework via TAXII 2.1 protocol.
+
+Key Features:
+- Attack Patterns: Collects detailed information about adversary tactics and techniques
+- Threat Actor Profiles: Gathers intelligence on known threat groups and their methods
+- Mitigation Strategies: Provides defensive measures and detection methods
+- STIX Object: Processes standardized threat intelligence objects
+- Version Tracking: Maintains historical versions of threat intelligence data
+
+Data Sources:
+- MITRE ATT&CK TAXII 2.1 API
+- Collections, manifests, objects, and versions
+- Structured threat intelligence in STIX format
+- Real-time updates from MITRE's threat research
+
+MongoDB Storage: Organizes threat intelligence into structured collections with relationship mapping and temporal tracking.
+
+## Unified MongoDB Integration
+
+Both connectors implement a robust MongoDB storage strategy:
+
+### Database Architecture
+- Separate Databases: Each connector uses dedicated databases to prevent data conflicts
+- Timestamped Records: All entries include ingestion timestamps for audit trails
+- Structured Collections: Data is organized into logical collections based on source and type
+- Error Handling: Comprehensive error recovery and connection management
+
+## Getting Started
+
+### Prerequisites
+- Python 3.7 or higher
+- MongoDB (local or remote instance)
+- API keys for respective services
+- Internet connectivity for API access
+
+### Quick Setup
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd custom-python-etl-data-connector
+```
+
+2. Set up environment variables:
+```bash
+cp ENV_TEMPLATE .env
+# Edit .env with your actual API keys and MongoDB settings
+```
+
+3. Install dependencies for both categories:
+```bash
+# For Shodan connector
+cd Cat1_All_Endpoints
+pip install -r shodan_requirements.txt
+
+# For MITRE TAXII connector
+cd ../Cat2_All_Endpoints
+pip install -r requirements.txt
+```
+
+4. Configure MongoDB:
+   - Ensure MongoDB is running on your system
+   - Update connection strings in `.env` file
+   - Create appropriate databases and collections
+
+### Environment Configuration
+
+The project uses the following environment variables:
+
+#### Cat1 (Shodan) Configuration:
+```env
+SHODAN_API_KEY=your_shodan_api_key
+MONGO_URI=mongodb://localhost:27017
+DB_NAME_shodan=securitydb
+COLLECTION_NAME_shodan=shodan_results
+```
+
+#### Cat2 (MITRE TAXII) Configuration:
+```env
+MONGO_URI_taxii=mongodb://localhost:27017/taxii_db
+TAXII_API="https://attack-taxii.mitre.org/api/v21"
+ACCEPT_HEADER="application/taxii+json;version=2.1"
+```
 
 ## Usage
 
-1. Replace the `YOUR_API_KEY_HERE` in the script with your actual Shodan API key.
+### Running Individual Connectors
 
-2. Run the script from the terminal:
+Shodan Connector:
+```bash
+cd Cat1_All_Endpoints
+python shodan_connector.py
+```
 
-      python3 shodan_host_lookup.py
-
-
-3. The script will fetch and display details about the given IP address.
-
-## Example Output
-Example output for IP `8.8.8.8` might look like:
-
-IP: 8.8.8.8
-Organization: Google LLC
-Operating System: None
-Ports: 53
-
-
-## Notes
-- Make sure you have an active internet connection while running the script.
-- The free Shodan API plan has usage limits — check your account for details.
-
-## License
-This project is provided for educational purposes only. Please use responsibly.
+MITRE TAXII Connector:
+```bash
+cd Cat2_All_Endpoints
+python MittreTaxiAPI_connector.py
+```
